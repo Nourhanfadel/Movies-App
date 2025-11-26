@@ -1,4 +1,4 @@
-// import { motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { FaHeart, FaListUl, FaPlay } from "react-icons/fa";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
