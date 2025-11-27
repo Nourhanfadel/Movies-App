@@ -30,9 +30,9 @@ function Home() {
   const renderSection = (title, movies, type) => (
     <div className="my-8">
       <div className="flex justify-between items-center mb-5 px-4">
-        <h2 className="text-2xl font-bold text-rose-800">{title}</h2>
+        <h2 className="text-2xl font-bold text-pink-900">{title}</h2>
       <Link
-  className="text-rose-800 font-semibold text-lg inline-flex items-center gap-1"
+  className="text-pink-900 font-semibold text-lg inline-flex items-center gap-1"
   onClick={() => navigate(`/movies/${type}`)}
 >
   See More <FaArrowCircleRight />
@@ -52,7 +52,7 @@ function Home() {
   const movieOfWeek = data?.movieOfWeek;
 
   return (
-    <div className="w-full">
+    <div className="w-full bg-black">
       {movieOfWeek && (
         <div className="relative w-full h-[300px] md:h-[400px] lg:h-[500px] overflow-hidden">
           <iframe
@@ -64,7 +64,7 @@ function Home() {
           ></iframe>
 
           <div className="absolute top-0 left-0 w-full h-full bg-black/60 flex flex-col justify-center p-6 md:p-12">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-rose-800 drop-shadow-lg">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-pink-900 drop-shadow-lg">
               <Typewriter
                 words={[movieOfWeek.title]}
                 loop={false}
@@ -87,7 +87,7 @@ function Home() {
               />
             </p>
 
-<div className="flex items-center gap-6 mt-4 text-rose-800">
+<div className="flex items-center gap-6 mt-4 text-pink-900">
   <div className="flex items-center gap-1 text-lg font-semibold">
     <FaStar /> {movieOfWeek.vote_average}
   </div>
@@ -96,7 +96,7 @@ function Home() {
 </div>
 
             <div className="mt-9">
-              <button className="px-6 py-2 bg-rose-800 hover:bg-rose-700 text-white font-semibold rounded-lg transition">
+              <button className="px-6 py-2 bg-pink-900 hover:bg-pink-800 text-white font-semibold rounded-lg transition">
                 Watch Now
               </button>
             </div>

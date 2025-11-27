@@ -8,7 +8,7 @@ function Footer() {
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
         
 
-        <div className="text-2xl font-bold text-rose-600 font-montserrat cursor-pointer">
+        <div className="text-2xl font-bold text-pink-900 font-montserrat cursor-pointer">
           HENO
         </div>
 
@@ -21,9 +21,9 @@ function Footer() {
         </div>
 
         <div className="flex gap-4 text-xl">
-          <a href="#" className="hover:text-rose-600 transition"><FaFacebookF /></a>
-          <a href="#" className="hover:text-rose-600 transition"><FaTwitter /></a>
-          <a href="#" className="hover:text-rose-600 transition"><FaInstagram /></a>
+          <a href="#" className="hover:text-pink-800 transition"><FaFacebookF /></a>
+          <a href="#" className="hover:text-pink-800 transition"><FaTwitter /></a>
+          <a href="#" className="hover:text-pink-800 transition"><FaInstagram /></a>
         </div>
       </div>
 
