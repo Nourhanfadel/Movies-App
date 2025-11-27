@@ -2,52 +2,59 @@ import React from "react";
 import { useMoviesWithTrailer } from "../hooks/useTrailer";
 import MovieCard from "../Components/MovieCard";
 import { Typewriter } from "react-simple-typewriter";
-import { Link, useNavigate } from "react-router-dom";
-import { usePopularMovies, useTopRatedMovies, useTrendingMovies, useUpcomingMovies } from "../hooks/useMovies";
-import { FaArrowCircleRight, FaStar, FaVoteYea } from "react-icons/fa";
+import { Link } from "react-router-dom";
+
+import { FaArrowAltCircleLeft, FaArrowAltCircleRight, FaArrowCircleRight, FaArrowLeft, FaArrowRight, FaStar, FaVoteYea } from "react-icons/fa";
 import { TbChartBarPopular } from "react-icons/tb";
 
+import { useTopRatedMovies } from "../hooks/useTopRatedMovies";
+import { usePopularMovies } from "../hooks/usePopularMovies";
+import { useUpcomingMovies } from "../hooks/useUpcomingMovies";
+import { useTrendingMovies } from "../hooks/useTrendingMovies";
+import { usePopularActors } from "../hooks/usePopularActors";
+import ActorCard from "../Components/ActorCard";
+
 function Home() {
-  const navigate = useNavigate();
+
+   const { data: actors, isLoading: loadingActors } = usePopularActors();
+
   const { data, isLoading, error } = useMoviesWithTrailer();
+  const { data: popular } = usePopularMovies();
+  const { data: topRated } = useTopRatedMovies();
+  const { data: upcoming } = useUpcomingMovies();
+  const { data: now_playing } = useTrendingMovies();
 
-  const { data: topRatedData, isLoading: loadingTopRated } = useTopRatedMovies();
-  const { data: upcomingData, isLoading: loadingUpcoming } = useUpcomingMovies();
-  const { data: trendingData, isLoading: loadingTrending } = useTrendingMovies();
-  const { data: popularData, isLoading: loadingPopular } = usePopularMovies();
-
-  if (loadingPopular || loadingTopRated || loadingUpcoming || loadingTrending || isLoading || error) {
+  if (isLoading || error) {
     return <p className="text-white p-4">Loading...</p>;
   }
 
+  const renderSection = (title, moviesData, type) => {
+    const movies = moviesData?.results || [];
 
-  const upcomingMovies = upcomingData?.results || [];
-  const trendingMovies = trendingData?.results || [];
-  const topRatedMovies = topRatedData?.results || [];
-  const popularMovies = popularData?.results || [];
+    if (!movies.length) return null;
 
+    return (
+      <div className="mt-5 pb-8 bg-black">
+        <div className="flex justify-between items-center mb-5 px-4">
+          <h2 className="text-2xl font-bold text-pink-900">{title}</h2>
 
-  const renderSection = (title, movies, type) => (
-    <div className="my-8">
-      <div className="flex justify-between items-center mb-5 px-4">
-        <h2 className="text-2xl font-bold text-pink-900">{title}</h2>
-      <Link
-  className="text-pink-900 font-semibold text-lg inline-flex items-center gap-1"
-  onClick={() => navigate(`/movies/${type}`)}
->
-  See More <FaArrowCircleRight />
-</Link>
+          <Link
+            className="text-pink-900 font-semibold text-lg inline-flex items-center gap-1"
+     to={`/category/${type}`}
 
+          >
+            See More <FaArrowCircleRight />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 px-4">
+          {movies.slice(0, 6).map((movie) => (
+            <MovieCard key={movie.id} movie={movie} />
+          ))}
+        </div>
       </div>
-
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 px-4">
-        {movies.slice(0, 6).map((movie) => (
-          <MovieCard key={movie.id} movie={movie} />
-        ))}
-      </div>
-    </div>
-  );
-
+    );
+  };
 
   const movieOfWeek = data?.movieOfWeek;
 
@@ -79,7 +86,7 @@ function Home() {
               <Typewriter
                 words={[movieOfWeek.overview]}
                 loop={1}
-                cursor={true}
+                cursor
                 cursorStyle="|"
                 typeSpeed={50}
                 deleteSpeed={0}
@@ -87,13 +94,19 @@ function Home() {
               />
             </p>
 
-<div className="flex items-center gap-6 mt-4 text-pink-900">
-  <div className="flex items-center gap-1 text-lg font-semibold">
-    <FaStar /> {movieOfWeek.vote_average}
-  </div>
-  <div className="flex items-center gap-1 text-lg font-semibold"><FaVoteYea /> {movieOfWeek.vote_count}</div>
-  <div className="flex items-center gap-1 text-lg font-semibold"><TbChartBarPopular /> {movieOfWeek.popularity}</div>
-</div>
+            <div className="flex items-center gap-6 mt-4 text-pink-900">
+              <div className="flex items-center gap-1 text-lg font-semibold">
+                <FaStar /> {movieOfWeek.vote_average}
+              </div>
+
+              <div className="flex items-center gap-1 text-lg font-semibold">
+                <FaVoteYea /> {movieOfWeek.vote_count}
+              </div>
+
+              <div className="flex items-center gap-1 text-lg font-semibold">
+                <TbChartBarPopular /> {movieOfWeek.popularity}
+              </div>
+            </div>
 
             <div className="mt-9">
               <button className="px-6 py-2 bg-pink-900 hover:bg-pink-800 text-white font-semibold rounded-lg transition">
@@ -103,13 +116,59 @@ function Home() {
           </div>
         </div>
       )}
+ 
 
-       <div className="w-full">
-      {renderSection("Upcoming Movies", upcomingMovies, "upcoming")}
-      {renderSection("Top Rated Movies", topRatedMovies, "top_rated")}
-      {renderSection("Popular Movies", popularMovies, "popular")}
-      {renderSection("Trending Now", trendingMovies, "now_playing")}
+<div className="my-8 px-4">
+  <div className="flex justify-between items-center mb-5">
+    <h2 className="text-2xl font-bold text-pink-900">Top Actors</h2>
+  </div>
+
+  {loadingActors ? (
+    <p className="text-white">Loading actors...</p>
+  ) : (
+    <div className="relative">
+      <button
+        onClick={() => {
+          const container = document.getElementById('actors-container');
+          container.scrollBy({ left: -300, behavior: 'smooth' });
+        }}
+        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-pink-900/80 hover:bg-pink-900 text-white p-3 rounded-full shadow-lg"
+      >
+     <FaArrowLeft />
+      </button>
+
+      <div
+        id="actors-container"
+        className="flex gap-4 overflow-x-auto bg-black p-4 rounded-md scrollbar-hide"
+        style={{
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+        }}
+      >
+        {actors.map((actor) => (
+          <ActorCard key={actor.id} actor={actor} />
+        ))}
+      </div>
+
+      <button
+        onClick={() => {
+          const container = document.getElementById('actors-container');
+          container.scrollBy({ left: 300, behavior: 'smooth' });
+        }}
+        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-pink-900/80 hover:bg-pink-900 text-white p-3 rounded-full shadow-lg"
+      >
+<FaArrowRight />
+      </button>
     </div>
+  )}
+</div>
+
+      <div className="w-full bg-black ">
+        {renderSection("Upcoming Movies", upcoming, "upcoming")}
+        {renderSection("Top Rated Movies", topRated, "top_rated")}
+        {renderSection("Popular Movies", popular, "popular")}
+        {renderSection("Trending Now", now_playing, "now_playing")}
+      </div>
     </div>
   );
 }

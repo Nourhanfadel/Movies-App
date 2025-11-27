@@ -30,5 +30,62 @@ export const fetchSearchMovies = async ({ pageParam = 1, queryKey }) => {
   const res = await tmbd.get("/search/movie", {
     params: { query: searchTerm, page: pageParam },
   });
-  return res.data; // data includes results, total_pages, page
+  return res.data;
+};
+
+
+export const fetchMovies = async (category) => {
+  const { data } = await tmbd.get(`/movie/${category}`, {
+    params: {
+      language: "en-US",
+      page: 1,
+    },
+  });
+  return data;
+};
+
+// export const fetchCategoryMovies = async (id) => {
+//   const { data } = await tmbd.get(`/movie/${id}`);
+//   return data;
+// };
+
+export const fetchPopularActors = async () => {
+  const { data } = await tmbd.get("/person/popular?language=en-US&page=1");
+  return data.results;
+};
+
+export const fetchCategoryMovies = async (category, page = 1) => {
+  const endpoints = {
+    popular: '/movie/popular',
+    top_rated: '/movie/top_rated',
+    upcoming: '/movie/upcoming',
+    now_playing: '/movie/now_playing'
+  };
+
+  const { data } = await tmbd.get(endpoints[category], {
+    params: {
+      language: 'en-US',
+      page: page
+    }
+  });
+  return data;
+};
+
+export const getFavorites = () => {
+  return JSON.parse(localStorage.getItem("favorites")) || [];
+};
+
+export const toggleFavoriteMovie = (movie) => {
+  const current = getFavorites();
+  const exists = current.some((m) => m.id === movie.id);
+
+  let updated;
+  if (exists) {
+    updated = current.filter((m) => m.id !== movie.id);
+  } else {
+    updated = [...current, movie];
+  }
+
+  localStorage.setItem("favorites", JSON.stringify(updated));
+  return updated;
 };

@@ -32,7 +32,7 @@ export default function SearchPage() {
   );
 
   return (
-    <div className="p-4">
+    <div className="p-4 bg-black min-h-screen">
       {isLoading && <p>Loading...</p>}
       {isError && <p>Error fetching movies</p>}
       {data?.pages[0]?.results?.length === 0 && query && <p>No results found.</p>}

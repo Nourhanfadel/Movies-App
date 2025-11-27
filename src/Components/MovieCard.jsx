@@ -1,12 +1,18 @@
 import { motion } from "framer-motion";
-import { FaHeart, FaListUl, FaPlay } from "react-icons/fa";
+import { FaHeart, FaListUl, FaPlay, FaRegHeart } from "react-icons/fa";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import { useMovieDetails } from "../hooks/useMovieDetails";
 import { Link } from "react-router-dom";
+import { useFavoriteMovies } from "../hooks/useFavoriteMovies";
+import { useToggleFavorite } from "../hooks/useToggleFavorite";
 
 const MovieCard = ({ movie }) => {
   const { data: movieDetails } = useMovieDetails(movie.id);
+    const { data: favorites } = useFavoriteMovies();
+  const { mutate: toggle } = useToggleFavorite();
+
+  const isFav = favorites?.some((m) => m.id === movie.id);
 
   return (
     <Link to={`/movie/${movie.id}`}>
@@ -15,14 +21,12 @@ const MovieCard = ({ movie }) => {
       transition={{ duration: 0.3 }}
       className="relative group cursor-pointer rounded-2xl overflow-hidden shadow-lg bg-[#111]"
     >
-      {/* IMAGE + LINK */}
         <img
           src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
           alt={movie.title}
           className="w-full h-[320px] object-cover"
         />
 
-      {/* OVERLAY INFO */}
       <div
         className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/50 to-transparent
                    opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"
@@ -39,15 +43,15 @@ const MovieCard = ({ movie }) => {
           </p>
         </div>
 
-        {/* ICONS — vertical left, appear on hover */}
         <div className="absolute top-1/2 left-2 transform -translate-y-1/2 flex flex-col gap-3
                         opacity-0 group-hover:opacity-100 pointer-events-auto transition-all duration-300">
           <button
             data-tooltip-id={`favTip-${movie.id}`}
             data-tooltip-content="Add to Favorites"
             className="w-8 h-8 flex items-center justify-center bg-white/10 hover:bg-pink-700 rounded-full shadow-md transition-all duration-200"
+            onClick={() => toggle(movie)}
           >
-            <FaHeart className="text-white text-sm" />
+                  {isFav ? <FaHeart color="red" className="text-white text-sm"/> : <FaRegHeart className="text-white text-sm"  />}
           </button>
           <button
             data-tooltip-id={`listTip-${movie.id}`}
@@ -66,7 +70,7 @@ const MovieCard = ({ movie }) => {
         </div>
       </div>
 
-      {/* TOOLTIP */}
+
       <Tooltip
   id={`favTip-${movie.id}`}
   place="top"
