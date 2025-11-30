@@ -10,6 +10,8 @@ import MoviesList from "./Pages/MoviesList";
 // import CategoryPage from "./Pages/CategoryPage";
 import Category from "./Pages/Categories";
 import FavoritesPage from "./Pages/Favourites";
+import Register from "./Pages/Register";
+import Login from "./Pages/Login";
 
 const App = () => {
   return (
@@ -22,8 +24,10 @@ const App = () => {
         <Route path="/movie/:id" element={<MovieDetails />} />
         <Route path="/search" element={<SearchPage />} />
         <Route path="/movies/:category" element={<MoviesList />} />
-      <Route path="/category/:type" element={<Category />} />
-      <Route path="/favorites" element={<FavoritesPage />} />
+        <Route path="/category/:type" element={<Category />} />
+        <Route path="/favorites" element={<FavoritesPage />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
 
 
 

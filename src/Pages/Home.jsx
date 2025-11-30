@@ -13,8 +13,18 @@ import { useUpcomingMovies } from "../hooks/useUpcomingMovies";
 import { useTrendingMovies } from "../hooks/useTrendingMovies";
 import { usePopularActors } from "../hooks/usePopularActors";
 import ActorCard from "../Components/ActorCard";
+import { useAuth } from "../context/AuthContext";
+import { useEffect, useState } from "react";
+import ContinueWatchingCard from "../Components/ContinueWatchingCard";
+import { supabase } from "../lib/supabase";
+
 
 function Home() {
+
+const { user } = useAuth();
+const [continueWatching, setContinueWatching] = useState([]);
+
+
 
    const { data: actors, isLoading: loadingActors } = usePopularActors();
 
@@ -23,6 +33,31 @@ function Home() {
   const { data: topRated } = useTopRatedMovies();
   const { data: upcoming } = useUpcomingMovies();
   const { data: now_playing } = useTrendingMovies();
+
+  
+useEffect(() => {
+  if (!user) return;
+
+  const fetchContinueWatching = async () => {
+    const { data, error } = await supabase
+      .from("continue_watching")
+      .select("*")
+      .eq("user_id", user.id)
+      .gt("progress", 0)   // يظهر فقط لو في progress > 0
+      .lt("progress", 100); // ويختفي لو خلص الفيلم
+
+    if (!error){
+      console.log("Continue watching data:", data);
+      setContinueWatching(data);
+
+    }
+
+  };
+
+  fetchContinueWatching();
+}, [user]);
+
+  
 
   if (isLoading || error) {
     return <p className="text-white p-4">Loading...</p>;
@@ -169,6 +204,44 @@ function Home() {
         {renderSection("Popular Movies", popular, "popular")}
         {renderSection("Trending Now", now_playing, "now_playing")}
       </div>
+      {continueWatching.length > 0 && (
+  <div className="my-8 px-4 relative">
+    <div className="flex justify-between items-center mb-5">
+      <h2 className="text-2xl font-bold text-pink-900">Continue Watching</h2>
+    </div>
+
+    <button
+      onClick={() => {
+        const container = document.getElementById("continue-container");
+        container.scrollBy({ left: -300, behavior: "smooth" });
+      }}
+      className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-pink-900/80 hover:bg-pink-900 text-white p-3 rounded-full shadow-lg"
+    >
+      <FaArrowLeft />
+    </button>
+
+    <div
+      id="continue-container"
+      className="flex gap-4 overflow-x-auto p-4 scrollbar-hide"
+      style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+    >
+      {continueWatching.map((movie) => (
+      <ContinueWatchingCard key={movie.movie_id} movie={movie} />
+      ))}
+    </div>
+
+    <button
+      onClick={() => {
+        const container = document.getElementById("continue-container");
+        container.scrollBy({ left: 300, behavior: "smooth" });
+      }}
+      className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-pink-900/80 hover:bg-pink-900 text-white p-3 rounded-full shadow-lg"
+    >
+      <FaArrowRight />
+    </button>
+  </div>
+)}
+
     </div>
   );
 }

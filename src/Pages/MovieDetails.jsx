@@ -1,13 +1,45 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useMovieDetails } from "../hooks/useMovieDetails";
+import { useAuth } from "../context/AuthContext"; // تأكدي من المسار
 import { FaClock, FaStar, FaPlay, FaTimes } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "../lib/supabase";
 
 const MovieDetails = () => {
   const { id } = useParams();
   const { data: movie, isLoading, isError } = useMovieDetails(id);
+  const { user } = useAuth();
   const [watchModal, setWatchModal] = useState(false);
+  const [progressValue, setProgressValue] = useState(0); // نسبة المشاهدة (0-100)
+useEffect(() => {
+  const updateContinueWatching = async () => {
+    if (!user || progressValue === 0 || progressValue === 100) return;
+
+    const { data, error } = await supabase
+      .from("continue_watching")
+      .upsert({
+        user_id: user.id,
+        movie_id: id,
+        progress: progressValue,
+        title: movie?.title || "",
+        thumbnail: movie?.poster_path
+          ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
+          : "",
+      });
+
+    if (error) console.log("Error saving continue watching:", error);
+    else console.log("Continue watching saved:", data);
+  };
+
+  updateContinueWatching();
+}, [progressValue, user, id, movie]);
+
+
+  if (isLoading) return <p>Loading...</p>;
+  if (isError) return <p>Error loading movie</p>;
+
+
 
   if (isLoading) return <p className="text-white p-6">Loading...</p>;
   if (isError || !movie)
@@ -16,6 +48,12 @@ const MovieDetails = () => {
   const trailer = movie?.videos?.results?.find(
     (v) => v.type === "Trailer" && v.site === "YouTube"
   );
+
+
+  const handleWatchNow = () => {
+    setWatchModal(true);
+    setProgressValue(10); // لو بدأ يشوف الفيديو خلي القيمة مثلا 10%
+  };
 
   return (
     <div className="text-white min-h-screen bg-[#111]">
@@ -96,33 +134,12 @@ const MovieDetails = () => {
             )}
 
             <button
-              onClick={() => setWatchModal(true)}
+              onClick={handleWatchNow}
               className="inline-flex items-center gap-3 bg-green-600 px-5 py-3 rounded-lg hover:bg-green-700 transition"
             >
               <FaPlay /> Watch Now
             </button>
           </div>
-        </div>
-      </div>
-
-      {/* Cast */}
-      <div className="max-w-5xl mx-auto p-4 mt-10">
-        <h2 className="text-2xl font-bold mb-3">Top Cast</h2>
-        <div className="flex gap-5 overflow-auto py-2">
-          {movie?.credits?.cast?.slice(0, 12)?.map((actor) => (
-            <div key={actor.id} className="w-[120px] text-center">
-              <img
-                src={
-                  actor.profile_path
-                    ? `https://image.tmdb.org/t/p/w200${actor.profile_path}`
-                    : "/actor-placeholder.jpg"
-                }
-                className="w-full h-auto object-cover rounded-full"
-              />
-              <p className="text-sm mt-2">{actor.name}</p>
-              <p className="text-xs text-gray-400">{actor.character}</p>
-            </div>
-          ))}
         </div>
       </div>
 
@@ -152,37 +169,6 @@ const MovieDetails = () => {
           </motion.div>
         )}
       </AnimatePresence>
-
-{/* Similar Movies Stylish */}
-{movie?.similar?.results?.length > 0 && (
-  <div className="max-w-6xl mx-auto p-4 mt-10">
-    <h2 className="text-2xl font-bold mb-4 text-white">Similar Movies</h2>
-
-    <div className="flex gap-5 overflow-auto py-2  hide-scrollbar">
-      {movie.similar.results.slice(0, 12).map((sm) => (
-        <Link key={sm.id} to={`/movie/${sm.id}`}>
-          <div className="relative min-w-[140px] flex-shrink-0 cursor-pointer group rounded-lg overflow-hidden shadow-lg">
-            {/* Poster */}
-            <img
-              src={`https://image.tmdb.org/t/p/w300${sm.poster_path}`}
-              alt={sm.title}
-              className="w-full h-[200px] object-cover transition-transform duration-300 group-hover:scale-105"
-            />
-
-            {/* Overlay Info on Hover */}
-            <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-2">
-              <h3 className="text-white font-semibold text-sm">{sm.title}</h3>
-              <p className="text-gray-300 text-xs mt-1">
-                {sm.release_date?.split("-")[0] || "----"} • {sm.vote_average?.toFixed(1)} ⭐
-              </p>
-            </div>
-          </div>
-        </Link>
-      ))}
-    </div>
-  </div>
-)}
-
     </div>
   );
 };
