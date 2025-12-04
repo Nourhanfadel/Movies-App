@@ -9,3 +9,12 @@
 }
 
 
+.no-scrollbar::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+.no-scrollbar {
+  scrollbar-width: none; /* Firefox */
+}
+
+

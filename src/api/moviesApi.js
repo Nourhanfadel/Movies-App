@@ -89,3 +89,24 @@ export const toggleFavoriteMovie = (movie) => {
   localStorage.setItem("favorites", JSON.stringify(updated));
   return updated;
 };
+
+
+export const getGenres = async () => {
+  const { data } = await tmbd.get("/genre/movie/list", {
+    params: { language: "en-US" },
+  });
+  return data.genres;
+};
+
+
+export const getMoviesByGenre = async (genreId, page = 1) => {
+  const { data } = await tmbd.get("/discover/movie", {
+    params: {
+      with_genres: genreId,
+      page,
+      language: "en-US",
+      sort_by: "popularity.desc",
+    },
+  });
+  return data;
+};
