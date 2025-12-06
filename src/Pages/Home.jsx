@@ -557,50 +557,50 @@ useEffect(() => {
 
       {/* ---------------- Actors ---------------- */}
       {!showModal && (
-        <div className="my-8 px-4">
-          <h2 className="text-2xl font-bold text-pink-900 mb-5">
-            Top Actors
-          </h2>
+      <div className="my-8 px-4">
+  <div className="flex justify-between items-center mb-5">
+    <h2 className="text-2xl font-bold text-pink-900">Top Actors</h2>
+  </div>
 
-          {loadingActors ? (
-            <p className="text-white">Loading actors...</p>
-          ) : (
-            <div className="relative">
-              <button
-                onClick={() => {
-                  document.getElementById("actors-container").scrollBy({
-                    left: -300,
-                    behavior: "smooth",
-                  });
-                }}
-                className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-pink-900/80 p-3 rounded-full text-white"
-              >
-                <FaArrowLeft />
-              </button>
+  {loadingActors ? (
+    <p className="text-white">Loading actors...</p>
+  ) : (
+    <div className="relative">
+      <button
+        onClick={() => {
+          const container = document.getElementById('actors-container');
+          container.scrollBy({ left: -300, behavior: 'smooth' });
+        }}
+        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-pink-900/80 hover:bg-pink-900 text-white p-3 rounded-full shadow-lg"
+      >
+     <FaArrowLeft />
+      </button>
 
-              <div
-                id="actors-container"
-                className="flex gap-4 overflow-x-auto bg-black p-4 rounded-md scrollbar-hide"
-              >
-                {actors.map((actor) => (
-                  <ActorCard key={actor.id} actor={actor} />
-                ))}
-              </div>
+      <div
+        id="actors-container"
+        className="flex gap-4 overflow-x-auto bg-black p-4 rounded-md scrollbar-hide"
+        style={{
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+        }}
+      >
+        {actors.map((actor) => (
+          <ActorCard key={actor.id} actor={actor} />
+        ))}
+      </div>
 
-              <button
-                onClick={() => {
-                  document.getElementById("actors-container").scrollBy({
-                    left: 300,
-                    behavior: "smooth",
-                  });
-                }}
-                className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-pink-900/80 p-3 rounded-full text-white"
-              >
-                <FaArrowRight />
-              </button>
-            </div>
-          )}
-        </div>
+      <button
+        onClick={() => {
+          const container = document.getElementById('actors-container');
+          container.scrollBy({ left: 300, behavior: 'smooth' });
+        }}
+        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-pink-900/80 hover:bg-pink-900 text-white p-3 rounded-full shadow-lg"
+      >
+<FaArrowRight />
+      </button>
+    </div>
+  )}
+</div>
       )}
 
       {/* ----------- Sections ----------- */}

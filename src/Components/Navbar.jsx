@@ -24,6 +24,9 @@ import {
   FaTimes,
   FaHome,
   FaFire,
+  FaClock,
+  FaTrophy,
+  FaChartLine,
 } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { useFavoriteMovies } from "../hooks/useFavoriteMovies";
@@ -38,8 +41,6 @@ function Navbar() {
   const { data: genres = [], isLoading: genresLoading } = useGenres();
   const favoritesCount = favorites?.length || 0;
 
- 
-
   const handleSearch = (e) => {
     e.preventDefault();
     if (!search.trim()) return;
@@ -49,6 +50,11 @@ function Navbar() {
 
   const handleGenreClick = (id) => {
     navigate(`/genre/${id}`);
+    setIsSidebarOpen(false);
+  };
+
+  const handleCategoryClick = (type) => {
+    navigate(`/category/${type}`);
     setIsSidebarOpen(false);
   };
 
@@ -74,9 +80,15 @@ function Navbar() {
     "TV Movie": <FaTv />,
   };
 
+  const categories = [
+    { name: "Popular", type: "popular", icon: <FaFire /> },
+    { name: "Top Rated", type: "top_rated", icon: <FaTrophy /> },
+    { name: "Upcoming", type: "upcoming", icon: <FaClock /> },
+    { name: "Now Playing", type: "now_playing", icon: <FaChartLine /> },
+  ];
+
   return (
     <>
-      {/* Navbar Top */}
       <nav className="w-full bg-black text-white shadow-md px-6 py-4 flex items-center justify-between relative z-50">
         <div className="flex items-center gap-4">
           <button
@@ -120,11 +132,8 @@ function Navbar() {
           )}
         </div>
       </nav>
-
-      {/* Sidebar Overlay */}
       {isSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setIsSidebarOpen(false)} />}
 
-      {/* Sidebar */}
       <div
         className={`fixed top-0 left-0 h-full 
         w-3/4 sm:w-2/5 md:w-72 
@@ -133,18 +142,15 @@ function Navbar() {
         transform transition-transform duration-300
         ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
-        {/* Sidebar Header */}
         <div className="flex items-center justify-between p-6 border-b border-gray-700">
-          <h2 className="text-2xl font-bold text-pink-500">Menu</h2>
+          {/* <h2 className="text-2xl font-bold text-pink-500">Menu</h2> */}
           <button onClick={() => setIsSidebarOpen(false)} className="text-2xl hover:text-pink-500">
             <FaTimes />
           </button>
         </div>
 
-        {/* Sidebar Content */}
         <div className="p-4 overflow-y-auto max-h-[calc(100vh-80px)] no-scrollbar">
-          {/* Main Links */}
-          <div className="mb-6">
+          <div className="mb-4">
             <Link
               to="/"
               onClick={() => setIsSidebarOpen(false)}
@@ -152,6 +158,23 @@ function Navbar() {
             >
               <FaHome /> Home
             </Link>
+          </div>
+
+          <div className="mb-6 border-t border-gray-700 pt-4">
+            <h3 className="text-lg font-semibold text-pink-400 mb-3 px-4">Categories</h3>
+            <ul className="space-y-2">
+              {categories.map((category) => (
+                <li key={category.type}>
+                  <button
+                    onClick={() => handleCategoryClick(category.type)}
+                    className="w-full flex items-center gap-3 text-left px-4 py-2 rounded-lg hover:bg-pink-900 hover:bg-opacity-30 transition text-base"
+                  >
+                    <span className="text-xl">{category.icon}</span>
+                    <span>{category.name}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
           </div>
           <div className="border-t border-gray-700 pt-4">
             <h3 className="text-lg font-semibold text-pink-400 mb-3 px-4">Genres</h3>
@@ -175,7 +198,6 @@ function Navbar() {
               <p className="text-gray-400 px-4">No genres available</p>
             )}
           </div>
-
         </div>
       </div>
     </>

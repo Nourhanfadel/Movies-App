@@ -1,3 +1,4 @@
+import { supabase } from "../lib/supabase";
 import { tmbd } from "./tmdb";
 
 export const getPopularMovies= async () =>{
@@ -71,24 +72,24 @@ export const fetchCategoryMovies = async (category, page = 1) => {
   return data;
 };
 
-export const getFavorites = () => {
-  return JSON.parse(localStorage.getItem("favorites")) || [];
-};
+// export const getFavorites = () => {
+//   return JSON.parse(localStorage.getItem("favorites")) || [];
+// };
 
-export const toggleFavoriteMovie = (movie) => {
-  const current = getFavorites();
-  const exists = current.some((m) => m.id === movie.id);
+// export const toggleFavoriteMovie = (movie) => {
+//   const current = getFavorites();
+//   const exists = current.some((m) => m.id === movie.id);
 
-  let updated;
-  if (exists) {
-    updated = current.filter((m) => m.id !== movie.id);
-  } else {
-    updated = [...current, movie];
-  }
+//   let updated;
+//   if (exists) {
+//     updated = current.filter((m) => m.id !== movie.id);
+//   } else {
+//     updated = [...current, movie];
+//   }
 
-  localStorage.setItem("favorites", JSON.stringify(updated));
-  return updated;
-};
+//   localStorage.setItem("favorites", JSON.stringify(updated));
+//   return updated;
+// };
 
 
 export const getGenres = async () => {
@@ -109,4 +110,155 @@ export const getMoviesByGenre = async (genreId, page = 1) => {
     },
   });
   return data;
+};
+
+
+
+
+// 
+
+// Get current user
+const getCurrentUser = async () => {
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
+};
+
+// Get favorites (guest or authenticated)
+export const getFavorites = async () => {
+  const user = await getCurrentUser();
+
+  if (user) {
+    // Authenticated user - get from Supabase
+    const { data, error } = await supabase
+      .from("favorites")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error fetching favorites:", error);
+      return [];
+    }
+
+    return data.map(fav => fav.movie_data);
+  } else {
+    // Guest user - get from localStorage
+    return JSON.parse(localStorage.getItem("favorites")) || [];
+  }
+};
+
+// Toggle favorite (guest or authenticated)
+export const toggleFavoriteMovie = async (movie) => {
+  const user = await getCurrentUser();
+
+  if (user) {
+    // Authenticated user - toggle in Supabase
+    const { data: existing } = await supabase
+      .from("favorites")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("movie_id", movie.id)
+      .single();
+
+    if (existing) {
+      // Remove from favorites
+      const { error } = await supabase
+        .from("favorites")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("movie_id", movie.id);
+
+      if (error) throw error;
+    } else {
+      // Add to favorites
+      const { error } = await supabase
+        .from("favorites")
+        .insert({
+          user_id: user.id,
+          movie_id: movie.id,
+          movie_data: movie
+        });
+
+      if (error) throw error;
+    }
+
+    // Return updated favorites
+    return await getFavorites();
+  } else {
+    // Guest user - toggle in localStorage
+    const current = JSON.parse(localStorage.getItem("favorites")) || [];
+    const exists = current.some((m) => m.id === movie.id);
+
+    let updated;
+    if (exists) {
+      updated = current.filter((m) => m.id !== movie.id);
+    } else {
+      updated = [...current, movie];
+    }
+
+    localStorage.setItem("favorites", JSON.stringify(updated));
+    return updated;
+  }
+};
+
+// Check if movie is favorite
+export const isMovieFavorite = async (movieId) => {
+  const user = await getCurrentUser();
+
+  if (user) {
+    const { data } = await supabase
+      .from("favorites")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("movie_id", movieId)
+      .single();
+
+    return !!data;
+  } else {
+    const favorites = JSON.parse(localStorage.getItem("favorites")) || [];
+    return favorites.some(m => m.id === movieId);
+  }
+};
+
+// Sync localStorage favorites to Supabase when user logs in
+export const syncFavoritesToSupabase = async () => {
+  const user = await getCurrentUser();
+  if (!user) return;
+
+  const localFavorites = JSON.parse(localStorage.getItem("favorites")) || [];
+  
+  if (localFavorites.length === 0) return;
+
+  // Get existing favorites from Supabase
+  const { data: existingFavorites } = await supabase
+    .from("favorites")
+    .select("movie_id")
+    .eq("user_id", user.id);
+
+  const existingIds = existingFavorites?.map(f => f.movie_id) || [];
+
+  // Filter out movies that already exist in Supabase
+  const newFavorites = localFavorites.filter(
+    movie => !existingIds.includes(movie.id)
+  );
+
+  // Insert new favorites
+  if (newFavorites.length > 0) {
+    const { error } = await supabase
+      .from("favorites")
+      .insert(
+        newFavorites.map(movie => ({
+          user_id: user.id,
+          movie_id: movie.id,
+          movie_data: movie
+        }))
+      );
+
+    if (error) {
+      console.error("Error syncing favorites:", error);
+    } else {
+      // Clear localStorage after successful sync
+      localStorage.removeItem("favorites");
+    }
+  }
 };
