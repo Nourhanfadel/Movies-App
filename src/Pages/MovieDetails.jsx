@@ -575,6 +575,28 @@ return () => {
         </div>
       </div>
 
+       {/* Cast */}
+      <div className="max-w-5xl mx-auto p-4 mt-10">
+        <h2 className="text-2xl font-bold mb-3">Top Cast</h2>
+        <div className="flex overflow-x-auto overflow-y-hidden scrollbar-hide gap-4 scroll-smooth">
+          {movie?.credits?.cast?.slice(0, 12)?.map((actor) => (
+            <div key={actor.id} className="w-[120px] text-center">
+              <img
+                src={
+                  actor.profile_path
+                    ? `https://image.tmdb.org/t/p/w200${actor.profile_path}`
+                    : "/actor-placeholder.jpg"
+                }
+                className="w-full h-auto object-cover rounded-full"
+              />
+              <p className="text-sm mt-2">{actor.name}</p>
+              <p className="text-xs text-gray-400">{actor.character}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+
       {/* WATCH MODAL */}
       <AnimatePresence>
         {watchModal && (

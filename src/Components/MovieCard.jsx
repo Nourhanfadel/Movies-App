@@ -6,11 +6,14 @@ import { useMovieDetails } from "../hooks/useMovieDetails";
 import { Link } from "react-router-dom";
 import { useFavoriteMovies } from "../hooks/useFavoriteMovies";
 import { useToggleFavorite } from "../hooks/useToggleFavorite";
+import WatchNowModal from "./WatchNowModal";
+import { useState } from "react";
 
 const MovieCard = ({ movie }) => {
   const { data: movieDetails } = useMovieDetails(movie.id);
   const { data: favorites } = useFavoriteMovies();
   const { mutate: toggleFavorite, isPending } = useToggleFavorite();
+  const [openModal, setOpenModal] = useState(false);
 
   const isFav = favorites?.some((m) => m.id === movie.id);
 
@@ -20,7 +23,14 @@ const MovieCard = ({ movie }) => {
     toggleFavorite(movie);
   };
 
+  const handleWatchNow = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setOpenModal(true);
+  };
+
   return (
+    <>
     <Link to={`/movie/${movie.id}`}>
       <motion.div
         whileHover={{ scale: 1.05 }}
@@ -79,6 +89,8 @@ const MovieCard = ({ movie }) => {
               data-tooltip-id={`playTip-${movie.id}`}
               data-tooltip-content="Watch Now"
               className="w-8 h-8 flex items-center justify-center bg-white/10 hover:bg-pink-700 rounded-full shadow-md transition-all duration-200"
+              onClick={handleWatchNow}
+
             >
               <FaPlay className="text-white text-sm" />
             </button>
@@ -123,6 +135,16 @@ const MovieCard = ({ movie }) => {
         />
       </motion.div>
     </Link>
+    {/* WATCH NOW MODAL */}
+      {movieDetails && (
+        <WatchNowModal
+          movie={movieDetails}
+          open={openModal}
+          onClose={() => setOpenModal(false)}
+        />
+      )}
+      </>
+
   );
 };
 
