@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { useAuth } from "../context/AuthContext";
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
 
 export default function Register() {
   const { signUp } = useAuth();
@@ -10,8 +11,8 @@ export default function Register() {
     const { email, password } = data;
     const { error } = await signUp(email, password);
 
-    if (error) alert(error.message);
-    else alert("Account created! Check your email to confirm.");
+    if (error) toast.error(error.message);
+    else toast.success("Account created! Check your email to confirm.");
   };
 
   return (
@@ -22,28 +23,21 @@ export default function Register() {
         </h2>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-
           <input
             placeholder="Email"
-            className="w-full px-4 py-3 rounded-lg bg-zinc-800 text-white 
-            placeholder-gray-400 focus:outline-none focus:ring-2 
-            focus:ring-red-500"
+            className="w-full px-4 py-3 rounded-lg bg-zinc-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-red-500"
             {...register("email", { required: true })}
           />
-
           <input
             type="password"
             placeholder="Password"
-            className="w-full px-4 py-3 rounded-lg bg-zinc-800 text-white 
-            placeholder-gray-400 focus:outline-none focus:ring-2 
-            focus:ring-pink-900"
+            className="w-full px-4 py-3 rounded-lg bg-zinc-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-900"
             {...register("password", { required: true })}
           />
 
           <button
             type="submit"
-            className="w-full bg-pink-900 hover:bg-pink-800 text-white 
-            py-3 rounded-lg font-semibold transition duration-200"
+            className="w-full bg-pink-900 hover:bg-pink-800 text-white py-3 rounded-lg font-semibold transition duration-200"
           >
             Register
           </button>

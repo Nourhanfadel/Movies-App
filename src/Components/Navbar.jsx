@@ -27,10 +27,12 @@ import {
   FaClock,
   FaTrophy,
   FaChartLine,
+  FaListUl,
 } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import { useFavoriteMovies } from "../hooks/useFavoriteMovies";
 import { useGenres } from "../hooks/useGeners";
+import { useWatchlist } from "../hooks/useWatchlist";
 
 function Navbar() {
   const [search, setSearch] = useState("");
@@ -40,6 +42,9 @@ function Navbar() {
   const { data: favorites } = useFavoriteMovies();
   const { data: genres = [], isLoading: genresLoading } = useGenres();
   const favoritesCount = favorites?.length || 0;
+
+  const { data: watchlist } = useWatchlist();
+const watchlistCount = watchlist?.length || 0;
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -121,16 +126,36 @@ function Navbar() {
           </button>
         </form>
 
-        <div className="relative cursor-pointer">
-          <Link to="/favorites">
-            <FaHeart className="text-2xl text-white hover:text-pink-500 transition" />
-          </Link>
-          {favoritesCount > 0 && (
-            <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-lg animate-pulse">
-              {favoritesCount}
-            </span>
-          )}
-        </div>
+<div className="flex items-center gap-6 cursor-pointer relative">
+
+
+  <div className="relative">
+    <Link to="/favorites">
+      <FaHeart className="text-2xl text-white hover:text-pink-500 transition" />
+    </Link>
+    {favoritesCount > 0 && (
+      <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-lg animate-pulse">
+        {favoritesCount}
+      </span>
+    )}
+  </div>
+
+ 
+  <div className="relative">
+    <Link to="/watchlist">
+      <FaListUl className="text-2xl text-white hover:text-pink-500 transition" />
+    </Link>
+    {watchlistCount > 0 && (
+      <span className="absolute -top-2 -right-2 bg-pink-500 text-white text-xs font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-lg animate-pulse">
+        {watchlistCount}
+      </span>
+    )}
+  </div>
+
+</div>
+
+
+
       </nav>
       {isSidebarOpen && <div className="fixed inset-0 bg-black/50 z-40" onClick={() => setIsSidebarOpen(false)} />}
 

@@ -12,11 +12,15 @@ import Category from "./Pages/Categories";
 import FavoritesPage from "./Pages/Favourites";
 import Register from "./Pages/Register";
 import Login from "./Pages/Login";
+import WatchlistPage from "./Pages/WatchlistPage";
+import { Toaster } from "react-hot-toast";
 
 const App = () => {
   return (
     <BrowserRouter>
     <Navbar />
+          <Toaster position="top-center" />
+
         <ErrorBoundary>
       <Routes>
         <Route path="/" element={<Home />} />
@@ -28,6 +32,7 @@ const App = () => {
         <Route path="/favorites" element={<FavoritesPage />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/watchlist" element={<WatchlistPage />} />
 
 
 

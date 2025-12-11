@@ -1,36 +1,37 @@
 import { motion } from "framer-motion";
-import { FaHeart, FaListUl, FaPlay, FaRegHeart } from "react-icons/fa";
+import { FaHeart, FaListUl, FaPlay, FaRegHeart, FaList } from "react-icons/fa";
 import { Tooltip } from "react-tooltip";
 import "react-tooltip/dist/react-tooltip.css";
 import { useMovieDetails } from "../hooks/useMovieDetails";
 import { Link } from "react-router-dom";
-import { useFavoriteMovies } from "../hooks/useFavoriteMovies";
-import { useToggleFavorite } from "../hooks/useToggleFavorite";
-import WatchNowModal from "./WatchNowModal";
-import { useState } from "react";
+import { useFavoriteMovies, useToggleFavorite } from "../hooks/useFavoriteMovies";
+import { useWatchlist, useToggleWatchlist } from "../hooks/useWatchlist";
 
 const MovieCard = ({ movie }) => {
   const { data: movieDetails } = useMovieDetails(movie.id);
-  const { data: favorites } = useFavoriteMovies();
-  const { mutate: toggleFavorite, isPending } = useToggleFavorite();
-  const [openModal, setOpenModal] = useState(false);
+  const { data: favorites = [] } = useFavoriteMovies();
+  const { data: watchlist = [] } = useWatchlist();
+  const { mutate: toggleFavorite, isPending: isFavPending } = useToggleFavorite();
+  const { mutate: toggleWatchlist, isPending: isWatchPending } = useToggleWatchlist();
 
   const isFav = favorites?.some((m) => m.id === movie.id);
+  const isInWatchlist = watchlist?.some((m) => m.id === movie.id);
 
   const handleToggleFavorite = (e) => {
-    e.preventDefault(); 
-    e.stopPropagation(); 
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("Toggling favorite for movie:", movie.id, movie.title);
     toggleFavorite(movie);
   };
 
-  const handleWatchNow = (e) => {
+  const handleToggleWatchlist = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setOpenModal(true);
+    console.log("Toggling watchlist for movie:", movie.id, movie.title);
+    toggleWatchlist(movie);
   };
 
   return (
-    <>
     <Link to={`/movie/${movie.id}`}>
       <motion.div
         whileHover={{ scale: 1.05 }}
@@ -61,36 +62,48 @@ const MovieCard = ({ movie }) => {
 
           <div
             className="absolute top-1/2 left-2 transform -translate-y-1/2 flex flex-col gap-3
-                        opacity-0 group-hover:opacity-100 pointer-events-auto transition-all duration-300"
+                        opacity-0 group-hover:opacity-100 transition-all duration-300"
           >
             <button
               data-tooltip-id={`favTip-${movie.id}`}
               data-tooltip-content={isFav ? "Remove from Favorites" : "Add to Favorites"}
               className={`w-8 h-8 flex items-center justify-center rounded-full shadow-md transition-all duration-200 ${
-                isPending ? "opacity-50 cursor-not-allowed" : "bg-white/10 hover:bg-pink-700"
+                isFavPending ? "opacity-50 cursor-wait" : "bg-white/10 hover:bg-pink-700"
               }`}
               onClick={handleToggleFavorite}
-              disabled={isPending}
+              disabled={isFavPending}
             >
               {isFav ? (
-                <FaHeart className="text-pink-500 text-sm animate-pulse" />
+                <FaHeart className="text-pink-500 text-sm" />
               ) : (
                 <FaRegHeart className="text-white text-sm" />
               )}
             </button>
             <button
               data-tooltip-id={`listTip-${movie.id}`}
-              data-tooltip-content="Add to Watchlist"
-              className="w-8 h-8 flex items-center justify-center bg-white/10 hover:bg-pink-700 rounded-full shadow-md transition-all duration-200"
+              data-tooltip-content={isInWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
+              className={`w-8 h-8 flex items-center justify-center rounded-full shadow-md transition-all duration-200 ${
+                isWatchPending ? "opacity-50 cursor-wait" : "bg-white/10 hover:bg-pink-700"
+              }`}
+              onClick={handleToggleWatchlist}
+              disabled={isWatchPending}
             >
-              <FaListUl className="text-white text-sm" />
+              {isInWatchlist ? (
+                <FaList className="text-pink-700 text-sm" />
+              ) : (
+                <FaListUl className="text-white text-sm" />
+              )}
             </button>
+
+       
             <button
               data-tooltip-id={`playTip-${movie.id}`}
               data-tooltip-content="Watch Now"
               className="w-8 h-8 flex items-center justify-center bg-white/10 hover:bg-pink-700 rounded-full shadow-md transition-all duration-200"
-              onClick={handleWatchNow}
-
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
             >
               <FaPlay className="text-white text-sm" />
             </button>
@@ -135,16 +148,6 @@ const MovieCard = ({ movie }) => {
         />
       </motion.div>
     </Link>
-    {/* WATCH NOW MODAL */}
-      {movieDetails && (
-        <WatchNowModal
-          movie={movieDetails}
-          open={openModal}
-          onClose={() => setOpenModal(false)}
-        />
-      )}
-      </>
-
   );
 };
 
