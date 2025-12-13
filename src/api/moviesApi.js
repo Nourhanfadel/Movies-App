@@ -45,10 +45,7 @@ export const fetchMovies = async (category) => {
   return data;
 };
 
-// export const fetchCategoryMovies = async (id) => {
-//   const { data } = await tmbd.get(`/movie/${id}`);
-//   return data;
-// };
+
 
 export const fetchPopularActors = async () => {
   const { data } = await tmbd.get("/person/popular?language=en-US&page=1");
@@ -72,24 +69,7 @@ export const fetchCategoryMovies = async (category, page = 1) => {
   return data;
 };
 
-// export const getFavorites = () => {
-//   return JSON.parse(localStorage.getItem("favorites")) || [];
-// };
 
-// export const toggleFavoriteMovie = (movie) => {
-//   const current = getFavorites();
-//   const exists = current.some((m) => m.id === movie.id);
-
-//   let updated;
-//   if (exists) {
-//     updated = current.filter((m) => m.id !== movie.id);
-//   } else {
-//     updated = [...current, movie];
-//   }
-
-//   localStorage.setItem("favorites", JSON.stringify(updated));
-//   return updated;
-// };
 
 
 export const getGenres = async () => {

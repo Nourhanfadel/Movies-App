@@ -1,4 +1,4 @@
-// Components/ActorCard.jsx
+
 import React from "react";
 
 function ActorCard({ actor }) {
@@ -13,7 +13,6 @@ function ActorCard({ actor }) {
   </div>
   <div className="mt-2 text-center">
     <h3 className="font-semibold text-white">{actor.name}</h3>
-    {/* <p className="text-sm text-gray-400">Popularity: {Math.round(actor.popularity)}</p> */}
   </div>
 </div>
 

@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { useAuth } from "../context/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
 export default function Register() {
@@ -13,6 +13,7 @@ export default function Register() {
 
     if (error) toast.error(error.message);
     else toast.success("Account created! Check your email to confirm.");
+     Navigate("/");
   };
 
   return (

@@ -82,7 +82,7 @@ if (isLoading) {
       <div className="py-12 px-4 mb-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center gap-3 mb-4">
-            <h1 className="text-4xl md:text-5xl font-bold text-white drop-shadow-lg">
+            <h1 className="text-3xl md:text-4xl font-bold text-white drop-shadow-lg">
               {currentCategory.title}
             </h1>
           </div>

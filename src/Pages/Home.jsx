@@ -1,13 +1,10 @@
 import React from "react";
-
 import { useMoviesWithTrailer } from "../hooks/useTrailer";
 import MovieCard from "../Components/MovieCard";
 import { Typewriter } from "react-simple-typewriter";
 import { Link } from "react-router-dom";
-
-import { FaArrowAltCircleLeft, FaArrowAltCircleRight, FaArrowCircleRight, FaArrowLeft, FaArrowRight, FaStar, FaVoteYea } from "react-icons/fa";
+import { FaArrowLeft, FaArrowRight, FaArrowCircleRight, FaStar, FaVoteYea, FaPlay } from "react-icons/fa";
 import { TbChartBarPopular } from "react-icons/tb";
-
 import { useTopRatedMovies } from "../hooks/useTopRatedMovies";
 import { usePopularMovies } from "../hooks/usePopularMovies";
 import { useUpcomingMovies } from "../hooks/useUpcomingMovies";
@@ -23,78 +20,79 @@ import { useRecommendations } from "../hooks/useRecommendations";
 import WatchNowModal from "../Components/WatchNowModal";
 import { getMovieDetails } from "../api/moviesApi";
 import Loader from "../Components/Loader";
-
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
 
 function Home() {
+  const { user } = useAuth();
+  const [continueWatching, setContinueWatching] = useState([]);
+  const [selectedMovie, setSelectedMovie] = useState(null);
+  const [openWatch, setOpenWatch] = useState(false);
 
-const { user } = useAuth();
-const [continueWatching, setContinueWatching] = useState([]);
-const [selectedMovie, setSelectedMovie] = useState(null);
-const [openWatch, setOpenWatch] = useState(false);
-
-
-
-
-   const { data: actors, isLoading: loadingActors } = usePopularActors();
-
+  const { data: actors, isLoading: loadingActors } = usePopularActors();
   const { data, isLoading, error } = useMoviesWithTrailer();
   const { data: popular } = usePopularMovies();
   const { data: topRated } = useTopRatedMovies();
   const { data: upcoming } = useUpcomingMovies();
   const { data: now_playing } = useTrendingMovies();
+  const { data: recommendations, isLoading: recLoading } = useRecommendations();
 
-   const { data: recommendations, isLoading: recLoading } = useRecommendations();
+  useEffect(() => {
+    if (!user) return;
 
+    const fetchContinueWatching = async () => {
+      const { data, error } = await supabase
+        .from("continue_watching")
+        .select("*")
+        .eq("user_id", user.id)
+        .gt("progress", 0)
+        .lt("progress", 100);
 
+      if (!error) {
+        console.log("Continue watching data:", data);
+        setContinueWatching(data);
+      }
+    };
 
-  
-useEffect(() => {
-  if (!user) return;
-
-  const fetchContinueWatching = async () => {
-    const { data, error } = await supabase
-      .from("continue_watching")
-      .select("*")
-      .eq("user_id", user.id)
-      .gt("progress", 0)   // يظهر فقط لو في progress > 0
-      .lt("progress", 100); // ويختفي لو خلص الفيلم
-
-    if (!error){
-      console.log("Continue watching data:", data);
-      setContinueWatching(data);
-
-    }
-
-  };
-
-  fetchContinueWatching();
-}, [user]);
-
-  
+    fetchContinueWatching();
+  }, [user]);
 
   if (isLoading || error) {
-    return <Loader/>;
+    return <Loader />;
   }
 
   const removeFromContinue = (movieId) => {
-  setContinueWatching((prev) =>
-    prev.filter((m) => m.movie_id !== movieId)
-  );
-};
+    setContinueWatching((prev) => prev.filter((m) => m.movie_id !== movieId));
+  };
 
-const removeContinueWatching = async (movie) => {
-  await supabase
-    .from("continue_watching")
-    .delete()
-    .eq("user_id", user.id)
-    .eq("movie_id", movie.movie_id);
+  const removeContinueWatching = async (movie) => {
+    await supabase
+      .from("continue_watching")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("movie_id", movie.movie_id);
 
-  setContinueWatching((prev) =>
-    prev.filter((m) => m.movie_id !== movie.movie_id)
-  );
-};
+    setContinueWatching((prev) =>
+      prev.filter((m) => m.movie_id !== movie.movie_id)
+    );
+  };
 
+  // 🔥 دالة لفتح modal للـ movie of week
+  const handleWatchNow = async () => {
+    if (!movieOfWeek) return;
 
+    try {
+      // جيب تفاصيل الفيلم الكاملة مع الـ videos
+      const fullMovie = await getMovieDetails(movieOfWeek.id);
+      
+      setSelectedMovie(fullMovie);
+      setOpenWatch(true);
+    } catch (error) {
+      console.error("Error loading movie details:", error);
+    }
+  };
 
   const renderSection = (title, moviesData, type) => {
     const movies = moviesData?.results || [];
@@ -108,8 +106,7 @@ const removeContinueWatching = async (movie) => {
 
           <Link
             className="text-pink-900 font-semibold text-lg inline-flex items-center gap-1"
-     to={`/category/${type}`}
-
+            to={`/category/${type}`}
           >
             See More <FaArrowCircleRight />
           </Link>
@@ -132,7 +129,7 @@ const removeContinueWatching = async (movie) => {
         <div className="relative w-full h-[300px] md:h-[400px] lg:h-[500px] overflow-hidden">
           <iframe
             className="absolute top-0 left-0 w-full h-full object-cover"
-            src={`https://www.youtube.com/embed/${movieOfWeek.trailerKey}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0`}
+            src={`https://www.youtube.com/embed/${movieOfWeek.trailerKey}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&loop=1&playlist=${movieOfWeek.trailerKey}`}
             title={movieOfWeek.title}
             allow="autoplay; encrypted-media"
             allowFullScreen
@@ -177,68 +174,57 @@ const removeContinueWatching = async (movie) => {
             </div>
 
             <div className="mt-9">
-              <button className="px-6 py-2 bg-pink-900 hover:bg-pink-800 text-white font-semibold rounded-lg transition">
-                Watch Now
+              <button
+                onClick={handleWatchNow}
+                className="flex items-center gap-2 px-6 py-3 bg-pink-900 hover:bg-pink-800 text-white font-semibold rounded-lg transition transform hover:scale-105 shadow-lg"
+              >
+                <FaPlay className="text-sm" />
+                <span>Watch Now</span>
               </button>
             </div>
           </div>
         </div>
       )}
- 
 
-<div className="my-8 px-4">
-  <div className="flex justify-between items-center mb-5">
-    <h2 className="text-2xl font-bold text-pink-900">Top Actors</h2>
-  </div>
+      <div className="mt-5 px-4">
+        <div className="flex justify-between items-center mb-5">
+          <h2 className="text-2xl font-bold text-pink-900">Top Actors</h2>
+        </div>
 
-  {loadingActors ? (
-    <p className="text-white">Loading actors...</p>
-  ) : (
-    <div className="relative">
-      <button
-        onClick={() => {
-          const container = document.getElementById('actors-container');
-          container.scrollBy({ left: -300, behavior: 'smooth' });
-        }}
-        className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-pink-900/80 hover:bg-pink-900 text-white p-3 rounded-full shadow-lg"
-      >
-     <FaArrowLeft />
-      </button>
-
-      <div
-        id="actors-container"
-        className="flex gap-4 overflow-x-auto bg-black p-4 rounded-md scrollbar-hide"
-        style={{
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-        }}
-      >
-        {actors.map((actor) => (
-          <ActorCard key={actor.id} actor={actor} />
-        ))}
+        {loadingActors ? (
+          <p className="text-white">Loading actors...</p>
+        ) : (
+          <Swiper
+            modules={[Navigation]}
+            spaceBetween={16}
+            slidesPerView={2}
+            navigation
+            breakpoints={{
+              480: { slidesPerView: 3 },
+              640: { slidesPerView: 4 },
+              768: { slidesPerView: 5 },
+              1024: { slidesPerView: 6 },
+              1280: { slidesPerView: 7 },
+            }}
+            className="actors-swiper"
+          >
+            {actors.map((actor) => (
+              <SwiperSlide key={actor.id}>
+                <ActorCard actor={actor} />
+              </SwiperSlide>
+            ))}
+          </Swiper>
+        )}
       </div>
 
-      <button
-        onClick={() => {
-          const container = document.getElementById('actors-container');
-          container.scrollBy({ left: 300, behavior: 'smooth' });
-        }}
-        className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-pink-900/80 hover:bg-pink-900 text-white p-3 rounded-full shadow-lg"
-      >
-<FaArrowRight />
-      </button>
-    </div>
-  )}
-</div>
-
-      <div className="w-full bg-black ">
-      {!recLoading && recommendations && recommendations.length > 0 && (
-        <MoviesSlider
-          movies={recommendations}
-          title="Recommended For You"
-          autoplay={true}
-        />
-      )}
+      <div className="w-full bg-black">
+        {!recLoading && recommendations && recommendations.length > 0 && (
+          <MoviesSlider
+            movies={recommendations}
+            title="Recommended For You"
+            autoplay={true}
+          />
+        )}
 
         {renderSection("Upcoming Movies", upcoming, "upcoming")}
         {renderSection("Top Rated Movies", topRated, "top_rated")}
@@ -247,75 +233,70 @@ const removeContinueWatching = async (movie) => {
       </div>
 
       {continueWatching.length > 0 && (
-  <div className="my-8 px-4 relative">
-    <div className="flex justify-between items-center mb-5">
-      <h2 className="text-2xl font-bold text-pink-900">Continue Watching</h2>
-    </div>
+        <div className="mt-5 px-4 relative">
+          <div className="flex justify-between items-center mb-5">
+            <h2 className="text-2xl font-bold text-pink-900">
+              Continue Watching
+            </h2>
+          </div>
 
-    <button
-      onClick={() => {
-        const container = document.getElementById("continue-container");
-        container.scrollBy({ left: -300, behavior: "smooth" });
-      }}
-      className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-pink-900/80 hover:bg-pink-900 text-white p-3 rounded-full shadow-lg"
-    >
-      <FaArrowLeft />
-    </button>
+          <button
+            onClick={() => {
+              const container = document.getElementById("continue-container");
+              container.scrollBy({ left: -300, behavior: "smooth" });
+            }}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-pink-900/80 hover:bg-pink-900 text-white p-3 rounded-full shadow-lg"
+          >
+            <FaArrowLeft />
+          </button>
 
-    <div
-      id="continue-container"
-      className="flex gap-4 overflow-x-auto p-4 scrollbar-hide"
-      style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-    >
-     {continueWatching.map((movie) => (
-  <ContinueWatchingCard
-    key={movie.movie_id}
-    movie={movie}
-   onClick={async (m) => {
-  const fullMovie = await getMovieDetails(m.movie_id);
+          <div
+            id="continue-container"
+            className="flex gap-4 overflow-x-auto p-4 scrollbar-hide"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+          >
+            {continueWatching.map((movie) => (
+              <ContinueWatchingCard
+                key={movie.movie_id}
+                movie={movie}
+                onClick={async (m) => {
+                  const fullMovie = await getMovieDetails(m.movie_id);
 
-  setSelectedMovie({
-    ...fullMovie,
-    progress: m.progress, // نحافظ على progress
-  });
+                  setSelectedMovie({
+                    ...fullMovie,
+                    progress: m.progress,
+                  });
 
-  setOpenWatch(true);
-}}
+                  setOpenWatch(true);
+                }}
+                onRemove={removeContinueWatching}
+              />
+            ))}
+          </div>
 
-  onRemove={removeContinueWatching}
+          <button
+            onClick={() => {
+              const container = document.getElementById("continue-container");
+              container.scrollBy({ left: 300, behavior: "smooth" });
+            }}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-pink-900/80 hover:bg-pink-900 text-white p-3 rounded-full shadow-lg"
+          >
+            <FaArrowRight />
+          </button>
+        </div>
+      )}
 
-
-  />
-))}
-
-    </div>
-
-    <button
-      onClick={() => {
-        const container = document.getElementById("continue-container");
-        container.scrollBy({ left: 300, behavior: "smooth" });
-      }}
-      className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-pink-900/80 hover:bg-pink-900 text-white p-3 rounded-full shadow-lg"
-    >
-      <FaArrowRight />
-    </button>
-  </div>
-)}
-
-{selectedMovie && (
-  <WatchNowModal
-  movie={selectedMovie}
-  open={openWatch}
-  onClose={() => {
-    setOpenWatch(false);
-    setSelectedMovie(null);
-  }}
-  onFinish={removeFromContinue}
-/>
-
-)}
-
-
+      {selectedMovie && (
+        <WatchNowModal
+          movie={selectedMovie}
+          open={openWatch}
+          onClose={() => {
+            setOpenWatch(false);
+            setSelectedMovie(null);
+          }}
+          onFinish={removeFromContinue}
+        />
+      )}
     </div>
   );
 }

@@ -9,7 +9,6 @@ import Loader from "../Components/Loader";
 function MoviesList() {
   const { category } = useParams();
 
-  // نجمع كل الـ hooks
   const hooksMap = {
     popular: usePopularMovies(),
     top_rated: useTopRatedMovies(),

@@ -7,7 +7,6 @@ import Footer from "./Components/Footer";
 import MovieDetails from "./Pages/MovieDetails";
 import SearchPage from "./Pages/SearchPage";
 import MoviesList from "./Pages/MoviesList";
-// import CategoryPage from "./Pages/CategoryPage";
 import Category from "./Pages/Categories";
 import FavoritesPage from "./Pages/Favourites";
 import Register from "./Pages/Register";

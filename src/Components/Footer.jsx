@@ -9,7 +9,7 @@ function Footer() {
         
 
         <div className="text-2xl font-bold text-pink-900 font-montserrat cursor-pointer">
-          HENO
+          Movies
         </div>
 
 

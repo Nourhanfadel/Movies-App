@@ -157,7 +157,6 @@ const MovieCard = ({ movie }) => {
       </motion.div>
     </Link>
 
-      {/* WATCH NOW MODAL */}
       {movieDetails && (
         <WatchNowModal
           movie={movieDetails}
