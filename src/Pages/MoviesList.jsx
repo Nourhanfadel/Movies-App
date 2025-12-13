@@ -4,6 +4,7 @@ import { usePopularMovies } from "../hooks/usePopularMovies";
 import { useTopRatedMovies } from "../hooks/useTopRatedMovies";
 import { useUpcomingMovies } from "../hooks/useUpcomingMovies";
 import { useTrendingMovies } from "../hooks/useTrendingMovies";
+import Loader from "../Components/Loader";
 
 function MoviesList() {
   const { category } = useParams();
@@ -24,7 +25,7 @@ function MoviesList() {
 
   const { data, isLoading, error } = current;
 
-  if (isLoading) return <p className="text-white p-5">Loading...</p>;
+  if (isLoading) return <Loader />;
   if (error) return <p className="text-white p-5">Error fetching movies</p>;
 
   const movies = data?.results || [];

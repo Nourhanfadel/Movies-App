@@ -2,6 +2,7 @@ import { useSearchParams } from "react-router-dom";
 import React from "react";
 import MovieCard from "../Components/MovieCard";
 import { useSearchMoviesInfinite } from "../hooks/useSearchMovies";
+import Loader from "../Components/Loader";
 
 export default function SearchPage() {
   const [searchParams] = useSearchParams();
@@ -33,7 +34,7 @@ export default function SearchPage() {
 
   return (
     <div className="p-4 bg-black min-h-screen">
-      {isLoading && <p>Loading...</p>}
+      {isLoading && <Loader/>}
       {isError && <p>Error fetching movies</p>}
       {data?.pages[0]?.results?.length === 0 && query && <p>No results found.</p>}
 

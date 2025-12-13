@@ -1,118 +1,165 @@
+
+
+
 // import { createContext, useContext, useEffect, useState } from "react";
+// import { syncFavoritesToSupabase, syncWatchlistToSupabase } from "../api/moviesApi";
 // import { supabase } from "../lib/supabase";
 
-// const AuthContext = createContext();
+
+// const AuthContext = createContext({});
+
+// export const useAuth = () => {
+//   return useContext(AuthContext);
+// };
 
 // export const AuthProvider = ({ children }) => {
 //   const [user, setUser] = useState(null);
+//   const [loading, setLoading] = useState(true);
 
-//   // Listen to auth state changes
 //   useEffect(() => {
-//     const getUser = async () => {
-//       const { data } = await supabase.auth.getUser();
-//       if (data?.user) {
-//         setUser(data.user);
+//     // Check active sessions
+//     supabase.auth.getSession().then(({ data: { session } }) => {
+//       setUser(session?.user ?? null);
+//       setLoading(false);
+//     });
+
+//     // Listen for auth changes
+//     const {
+//       data: { subscription },
+//     } = supabase.auth.onAuthStateChange(async (event, session) => {
+//       console.log("Auth event:", event);
+//       setUser(session?.user ?? null);
+
+//       // 🔥 Sync data when user signs in
+//       if (event === "SIGNED_IN") {
+//         console.log("User signed in, syncing data...");
+//         await syncFavoritesToSupabase();
+//         await syncWatchlistToSupabase();
 //       }
-//     };
 
-//     getUser();
+//       setLoading(false);
+//     });
 
-//     const { data: listener } = supabase.auth.onAuthStateChange(
-//       (_event, session) => {
-//         setUser(session?.user || null);
-//       }
-//     );
-
-//     return () => listener.subscription.unsubscribe();
+//     return () => subscription.unsubscribe();
 //   }, []);
+
+//   const signIn = async (email, password) => {
+//     const { data, error } = await supabase.auth.signInWithPassword({
+//       email,
+//       password,
+//     });
+
+//     return { data, error };
+//   };
+
+//   const signUp = async (email, password) => {
+//     const { data, error } = await supabase.auth.signUp({
+//       email,
+//       password,
+//     });
+
+//     return { data, error };
+//   };
+
+//   const signOut = async () => {
+//     const { error } = await supabase.auth.signOut();
+//     return { error };
+//   };
 
 //   const value = {
 //     user,
-//     signUp: (email, password) =>
-//       supabase.auth.signUp({ email, password }),
-
-//     signIn: (email, password) =>
-//       supabase.auth.signInWithPassword({ email, password }),
-
-//     signOut: () => supabase.auth.signOut(),
+//     loading,
+//     signIn,
+//     signUp,
+//     signOut,
 //   };
 
 //   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 // };
 
-// export const useAuth = () => useContext(AuthContext);
 import { createContext, useContext, useEffect, useState } from "react";
-import { syncFavoritesToSupabase, syncWatchlistToSupabase } from "../api/moviesApi";
 import { supabase } from "../lib/supabase";
+import {
+  syncFavoritesToSupabase,
+  syncWatchlistToSupabase,
+} from "../api/moviesApi";
 
+const AuthContext = createContext(null);
 
-const AuthContext = createContext({});
-
-export const useAuth = () => {
-  return useContext(AuthContext);
-};
+export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  /** ============================
+   * INITIAL SESSION
+   * ============================ */
   useEffect(() => {
-    // Check active sessions
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const init = async () => {
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       setUser(session?.user ?? null);
       setLoading(false);
-    });
+    };
 
-    // Listen for auth changes
+    init();
+  }, []);
+
+  /** ============================
+   * AUTH LISTENER
+   * ============================ */
+  useEffect(() => {
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth event:", event);
-      setUser(session?.user ?? null);
-
-      // 🔥 Sync data when user signs in
-      if (event === "SIGNED_IN") {
-        console.log("User signed in, syncing data...");
-        await syncFavoritesToSupabase();
-        await syncWatchlistToSupabase();
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
+        setUser(session?.user ?? null);
       }
-
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  const signIn = async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+  /** ============================
+   * SYNC AFTER LOGIN
+   * ============================ */
+  useEffect(() => {
+    if (!user) return;
 
-    return { data, error };
-  };
+    const syncData = async () => {
+      try {
+        await syncFavoritesToSupabase();
+        await syncWatchlistToSupabase();
+      } catch (err) {
+        console.error("Sync error:", err);
+      }
+    };
 
-  const signUp = async (email, password) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
+    syncData();
+  }, [user?.id]);
 
-    return { data, error };
-  };
+  const signIn = (email, password) =>
+    supabase.auth.signInWithPassword({ email, password });
 
-  const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    return { error };
-  };
+  const signUp = (email, password) =>
+    supabase.auth.signUp({ email, password });
 
-  const value = {
-    user,
-    loading,
-    signIn,
-    signUp,
-    signOut,
-  };
+  const signOut = () => supabase.auth.signOut();
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        signIn,
+        signUp,
+        signOut,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };

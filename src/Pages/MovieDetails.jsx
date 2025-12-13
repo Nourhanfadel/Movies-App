@@ -243,6 +243,7 @@ import { useAuth } from "../context/AuthContext";
 import { FaClock, FaStar, FaPlay, FaTimes } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "../lib/supabase";
+import Loader from "../Components/Loader";
 
 const MovieDetails = () => {
   const { id } = useParams();
@@ -419,7 +420,7 @@ const MovieDetails = () => {
   });
 
   try {
-    if (percentage >= 95) {
+    if (percentage >= 90) {
       const { error } = await supabase
         .from("continue_watching")
         .delete()
@@ -479,7 +480,7 @@ return () => {
     
   }, [currentTime, user, id, movie, videoDuration]);
 
-  if (isLoading) return <p className="text-white p-6">Loading...</p>;
+  if (isLoading) return <Loader/>;
   if (isError || !movie)
     return <p className="text-red-500 p-6">Error loading movie.</p>;
 

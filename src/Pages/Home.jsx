@@ -1,4 +1,5 @@
 import React from "react";
+
 import { useMoviesWithTrailer } from "../hooks/useTrailer";
 import MovieCard from "../Components/MovieCard";
 import { Typewriter } from "react-simple-typewriter";
@@ -19,12 +20,18 @@ import ContinueWatchingCard from "../Components/ContinueWatchingCard";
 import { supabase } from "../lib/supabase";
 import MoviesSlider from "../Components/MoviesSlider";
 import { useRecommendations } from "../hooks/useRecommendations";
+import WatchNowModal from "../Components/WatchNowModal";
+import { getMovieDetails } from "../api/moviesApi";
+import Loader from "../Components/Loader";
 
 
 function Home() {
 
 const { user } = useAuth();
 const [continueWatching, setContinueWatching] = useState([]);
+const [selectedMovie, setSelectedMovie] = useState(null);
+const [openWatch, setOpenWatch] = useState(false);
+
 
 
 
@@ -66,8 +73,28 @@ useEffect(() => {
   
 
   if (isLoading || error) {
-    return <p className="text-white p-4">Loading...</p>;
+    return <Loader/>;
   }
+
+  const removeFromContinue = (movieId) => {
+  setContinueWatching((prev) =>
+    prev.filter((m) => m.movie_id !== movieId)
+  );
+};
+
+const removeContinueWatching = async (movie) => {
+  await supabase
+    .from("continue_watching")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("movie_id", movie.movie_id);
+
+  setContinueWatching((prev) =>
+    prev.filter((m) => m.movie_id !== movie.movie_id)
+  );
+};
+
+
 
   const renderSection = (title, moviesData, type) => {
     const movies = moviesData?.results || [];
@@ -218,6 +245,7 @@ useEffect(() => {
         {renderSection("Popular Movies", popular, "popular")}
         {renderSection("Trending Now", now_playing, "now_playing")}
       </div>
+
       {continueWatching.length > 0 && (
   <div className="my-8 px-4 relative">
     <div className="flex justify-between items-center mb-5">
@@ -239,9 +267,27 @@ useEffect(() => {
       className="flex gap-4 overflow-x-auto p-4 scrollbar-hide"
       style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
     >
-      {continueWatching.map((movie) => (
-      <ContinueWatchingCard key={movie.movie_id} movie={movie} />
-      ))}
+     {continueWatching.map((movie) => (
+  <ContinueWatchingCard
+    key={movie.movie_id}
+    movie={movie}
+   onClick={async (m) => {
+  const fullMovie = await getMovieDetails(m.movie_id);
+
+  setSelectedMovie({
+    ...fullMovie,
+    progress: m.progress, // نحافظ على progress
+  });
+
+  setOpenWatch(true);
+}}
+
+  onRemove={removeContinueWatching}
+
+
+  />
+))}
+
     </div>
 
     <button
@@ -255,6 +301,20 @@ useEffect(() => {
     </button>
   </div>
 )}
+
+{selectedMovie && (
+  <WatchNowModal
+  movie={selectedMovie}
+  open={openWatch}
+  onClose={() => {
+    setOpenWatch(false);
+    setSelectedMovie(null);
+  }}
+  onFinish={removeFromContinue}
+/>
+
+)}
+
 
     </div>
   );
